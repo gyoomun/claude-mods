@@ -1,0 +1,10 @@
+{
+  "name": "coach-on-call",
+  "version": "0.1.0",
+  "description": "\"코치 <대충 쓴 말>\"로 부를 때만 프롬프트를 다듬어 준다. 다듬은 걸 보낼지, 내 말 그대로 보낼지, 고쳐서 보낼지 고른다.",
+  "author": {
+    "name": "gyoomun",
+    "url": "https://github.com/gyoomun"
+  },
+  "license": "MIT"
+}

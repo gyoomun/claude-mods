@@ -1,0 +1,19 @@
+{
+  "name": "gyoomun-mods",
+  "owner": { "name": "gyoomun", "url": "https://github.com/gyoomun" },
+  "metadata": { "description": "다른 사람이 만든 Claude Code 모드를 내 작업 방식에 맞게 고친 것" },
+  "plugins": [
+    {
+      "name": "coach-on-call",
+      "source": "./coach-on-call",
+      "description": "\"코치 <대충 쓴 말>\"로 부를 때만 프롬프트를 다듬어 준다",
+      "license": "MIT"
+    },
+    {
+      "name": "next-steps-multi",
+      "source": "./next-steps-multi",
+      "description": "다음 프롬프트 제안을 1·2·3으로 여러 개 체크하고 0으로 한꺼번에 입력창에 넣는다",
+      "license": "MIT"
+    }
+  ]
+}
