@@ -1,7 +1,12 @@
 {
   "name": "gyoomun-mods",
-  "owner": { "name": "gyoomun", "url": "https://github.com/gyoomun" },
-  "metadata": { "description": "다른 사람이 만든 Claude Code 모드를 내 작업 방식에 맞게 고친 것" },
+  "owner": {
+    "name": "gyoomun",
+    "url": "https://github.com/gyoomun"
+  },
+  "metadata": {
+    "description": "다른 사람이 만든 Claude Code 모드를 내 작업 방식에 맞게 고친 것"
+  },
   "plugins": [
     {
       "name": "coach-on-call",
@@ -13,6 +18,12 @@
       "name": "next-steps-multi",
       "source": "./next-steps-multi",
       "description": "다음 프롬프트 제안을 1·2·3으로 여러 개 체크하고 0으로 한꺼번에 입력창에 넣는다",
+      "license": "MIT"
+    },
+    {
+      "name": "pinboard",
+      "source": "./pinboard",
+      "description": "결정·할 일·링크를 옆 패널에 고정한다. 원본에서 패널 너비를 45칸으로 고친 것",
       "license": "MIT"
     }
   ]
