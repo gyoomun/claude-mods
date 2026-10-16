@@ -1,0 +1,9 @@
+{
+  "name": "hq-usage",
+  "version": "0.1.0",
+  "description": "Claude 사용량 한도(5시간·주간)를 ~/.claude/board/usage.json에 남겨 Claude Session HQ 머리에 보이게 한다",
+  "author": {
+    "name": "gyoomun",
+    "url": "https://github.com/gyoomun"
+  }
+}

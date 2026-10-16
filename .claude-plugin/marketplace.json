@@ -25,6 +25,12 @@
       "source": "./pinboard",
       "description": "결정·할 일·링크를 옆 패널에 고정한다. 원본에서 패널 너비를 45칸으로 고친 것",
       "license": "MIT"
+    },
+    {
+      "name": "hq-usage",
+      "source": "./hq-usage",
+      "description": "Claude 사용량 한도(5시간·주간)를 파일에 남겨 Claude Session HQ 머리에 보이게 한다",
+      "license": "MIT"
     }
   ]
 }
