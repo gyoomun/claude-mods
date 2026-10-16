@@ -138,9 +138,11 @@ async function capture($: EngineInterface, change: () => Promise<unknown>): Prom
 // 보드가 비어 있으면 대화 기록에 남은 이 도구의 마지막 결과로 되살린다(새 세션은 기록이 없어 그대로 빈다)
 let restored = false
 async function restoreBoard($: EngineInterface): Promise<void> {
+  if ((await read($, todos)).length + (await read($, decisions)).length > 0) { restored = true; return }
+  const messages = await $.session.messages()
+  if (messages.length === 0) return // 이어 띄운 기록을 아직 못 읽었거나 새 세션: 다음에 다시 본다
   restored = true
-  if ((await read($, todos)).length + (await read($, decisions)).length > 0) return
-  const board = lastBoard(await $.session.messages())
+  const board = lastBoard(messages)
   if (!board) return
   await update($, todos, () => board.todos)
   await update($, decisions, () => board.decisions)
