@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { applyUpdate, asksUser, describeBoard, urlPins } from '../hooks/register'
+import { applyUpdate, asksUser, describeBoard, lastBoard, parseBoard, urlPins } from '../hooks/register'
 
 const SURFACES = ['terminal', 'desktop'] as const
 const TOOL = 'mcp__pinboard__update'
@@ -22,6 +22,25 @@ const texts = async (ui: { findAll: (q: { type: string }) => Promise<{ text: str
   (await ui.findAll({ type: 'Text' })).map(t => t.text).join('')
 
 describe('board', () => {
+  test('a board read back from its own description is the same board (다시 띄운 세션 되살리기)', () => {
+    const board = applyUpdate({ todos: [], decisions: [] }, { add_todos: ['사과 사기', '배 사기', '귤 사기'], start_todo: 't2', open_decisions: ['바나나를 살까'] })
+    const done = applyUpdate(board, { done_todos: ['t1'] })
+    // 진행 중 표시는 꺼져 있을 때 isActive: false로도, 없이도 쓴다. 뜻(켜졌는지)만 견준다
+    const plain = (b: ReturnType<typeof parseBoard>) => b && { ...b, todos: b.todos.map(x => ({ ...x, isActive: !!x.isActive })) }
+    expect(plain(parseBoard(describeBoard(done)))).toEqual(plain(done))
+    expect(parseBoard('Pinboard is empty.')).toBe(null)
+  })
+
+  test('the last result in the transcript wins, and an empty last board restores nothing', () => {
+    const use = (text: string) => ({ tool_use_id: 'x', tool: TOOL, input: {}, text })
+    const msg = (text: string) => ({ role: 'assistant' as const, text: '', toolUses: [use(text)] })
+    const older = describeBoard({ todos: [{ id: 't1', text: 'old', isDone: false }], decisions: [] })
+    const newer = describeBoard({ todos: [{ id: 't1', text: 'old', isDone: true }], decisions: [{ id: 'd1', text: 'which?' }] })
+    expect(lastBoard([msg(older), msg(newer)])?.decisions).toEqual([{ id: 'd1', text: 'which?' }])
+    expect(lastBoard([msg(newer), msg('Pinboard is empty.')])).toBe(null)
+    expect(lastBoard([{ role: 'user', text: 'hi', toolUses: [] }])).toBe(null)
+  })
+
   test('updates add, check off, remove and decide by id', () => {
     let board = applyUpdate({ todos: [], decisions: [] }, { add_todos: ['Write it', 'Test it', 'Drop it'], open_decisions: ['Ship it?', 'Which owner?'] })
     expect(board.todos.map(t => t.id)).toEqual(['t1', 't2', 't3'])

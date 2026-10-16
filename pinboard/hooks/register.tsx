@@ -1,5 +1,5 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register } from 'claude-code'
+import type { EngineInterface, Register, SessionMessage } from 'claude-code'
 
 import type { Decision, Pin, Todo } from '../types'
 
@@ -80,6 +80,25 @@ export function describeBoard(board: Board): string {
   ].join('\n')
 }
 
+// describeBoard의 반대: 'Pinboard now:' 글을 보드로. 다른 글('Pinboard is empty.' 등)이면 null
+export function parseBoard(text: string): Board | null {
+  if (!text.startsWith('Pinboard now:')) return null
+  const board: Board = { todos: [], decisions: [] }
+  for (const m of text.split('\n').slice(1).map(l => /^(\w+) \[(.)\] (.*)$/.exec(l))) {
+    if (!m) continue
+    if (m[2] === '?') board.decisions.push({ id: m[1], text: m[3] })
+    else board.todos.push({ id: m[1], text: m[3], isDone: m[2] === 'x', ...(m[2] === '>' ? { isActive: true } : {}) })
+  }
+  return board
+}
+
+// 대화 기록에서 이 도구의 마지막 결과가 보여 준 보드. 마지막이 빈 보드였으면 null
+export function lastBoard(messages: SessionMessage[]): Board | null {
+  for (const m of [...messages].reverse())
+    for (const u of [...m.toolUses].reverse()) if (u.tool === TOOL && u.text && !u.isError) return parseBoard(u.text)
+  return null
+}
+
 // A reply asks the user something when one of its last lines, outside code, ends in a question mark
 export function asksUser(reply: string): boolean {
   const prose = reply.replace(/```[\s\S]*?```/g, '')
@@ -115,6 +134,18 @@ async function capture($: EngineInterface, change: () => Promise<unknown>): Prom
   if (wasEmpty && !(await isEmpty($))) await $.ui.open({ id: PANE, title: TITLE, columns: COLUMNS })
 }
 
+// 다시 띄운(--resume) 세션은 보드가 프로세스 메모리에만 있어 비어서 시작한다. 처음 시스템 프롬프트를 만들 때
+// 보드가 비어 있으면 대화 기록에 남은 이 도구의 마지막 결과로 되살린다(새 세션은 기록이 없어 그대로 빈다)
+let restored = false
+async function restoreBoard($: EngineInterface): Promise<void> {
+  restored = true
+  if ((await read($, todos)).length + (await read($, decisions)).length > 0) return
+  const board = lastBoard(await $.session.messages())
+  if (!board) return
+  await update($, todos, () => board.todos)
+  await update($, decisions, () => board.decisions)
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'pinboard', description: 'Open the pane of open decisions, todos and links', immediate: true })
@@ -132,6 +163,7 @@ export const register: Register = on => {
   // The board rides at the end of the system prompt, so it never has to be repeated in replies
   on('prompt.compose', async ($, e, next) => {
     const { sections } = await next(e)
+    if (!restored) await restoreBoard($)
     const board = describeBoard({ todos: await read($, todos), decisions: await read($, decisions) })
     return { sections: [...sections, { id: 'pinboard:board', text: board, scope: 'session' }] }
   })
